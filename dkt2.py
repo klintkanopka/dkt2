@@ -38,18 +38,18 @@ def read_data_from_csv_file(fileName, n_params=8):
     n_items = int(rows[row_skip][col_skip])
     print("the number of items is " + str(n_items))
 
-    inputs = np.zeros((n_params-1, n_items, n_students))
-    target = np.zeros((n_items, n_students))
+    inputs = np.zeros((n_students, n_items, n_params - 1))
+    target = np.zeros((n_students, n_items, 1))
 
-    for k in range(n_students):
-        index = (n_params + 1)*k + row_skip
+    for i in range(n_students):
+        index = (n_params + 1)*i + row_skip
         num_items = int(rows[index][col_skip])
         for j in range(num_items):
-            target[j][k] = int(rows[index + 1][j + col_skip])
-        for i in range(n_params-1):
+            target[i][j][1] = int(rows[index + 1][j + col_skip])
+        for k in range(n_params-1):
             for j in range(num_items):
-                print("foo:" +rows[index + 2 + i][j + col_skip])
-                inputs[i][j][k] = float(rows[index + 2 + i][j + col_skip])
+                print("foo:" +rows[index + 2 + k][j + col_skip])
+                inputs[i][j][k] = float(rows[index + 2 + k][j + col_skip])
 
     print("finished reading data")
     return inputs, target
