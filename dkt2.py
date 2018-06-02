@@ -45,7 +45,7 @@ def read_data_from_csv_file(fileName, n_params=8):
         index = (n_params + 1)*i + row_skip
         num_items = int(rows[index][col_skip])
         for j in range(num_items):
-            target[i][j][1] = int(rows[index + 1][j + col_skip])
+            target[i][j][0] = int(rows[index + 1][j + col_skip])
         for k in range(n_params-1):
             for j in range(num_items):
                 print("foo:" +rows[index + 2 + k][j + col_skip])
