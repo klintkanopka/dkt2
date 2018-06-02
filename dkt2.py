@@ -14,7 +14,7 @@
 import csv
 import numpy as np
 from keras.models import Model
-from keras.layers import Input, GRU
+from keras.layers import Input, GRU, Dense
 from functools import reduce
 
 GRU_HIDDEN_UNITS = 64
@@ -45,10 +45,9 @@ def read_data_from_csv_file(fileName, n_params=8):
         index = (n_params + 1)*i + row_skip
         num_items = int(rows[index][col_skip])
         for j in range(num_items):
-            target[i][j][1] = int(rows[index + 1][j + col_skip])
+            target[i][j][0] = int(rows[index + 1][j + col_skip])
         for k in range(n_params-1):
             for j in range(num_items):
-                print("foo:" +rows[index + 2 + k][j + col_skip])
                 inputs[i][j][k] = float(rows[index + 2 + k][j + col_skip])
 
     print("finished reading data")
@@ -61,14 +60,19 @@ def compose(*args):
     return reduce(compose2, args)
 
 def make_model(input_shape):
-    input_layer = Input(input_shape)
-    return compose(    input_layer,
-                       GRU(GRU_HIDDEN_UNITS),
-                       lambda x: Model(inputs=input_layer, outputs=x) )
+    inputs = Input(input_shape)
+    x = GRU(GRU_HIDDEN_UNITS, return_sequences=True)(inputs)
+    x = Dense(1)(x)
+    return Model(inputs=inputs, outputs=x)
 
 def main():
     inputs, targets = read_data_from_csv_file("data/tiny-test.csv")
-    model = make_model((32, None))
+    print(inputs.shape)
+    model = make_model((103, 7))
+    model.summary()
+    model.compile("Adam", "binary_crossentropy");
+    model.fit(x=inputs, y=targets, epochs=100)
+    print(model.predict(inputs).shape)
 
 if __name__ == "__main__":
     main()
