@@ -71,8 +71,8 @@ def shuffle_and_split(data, ratio):
 
 def train(model, filename, epochs=150, train_ratio=0.8, test_interval=10):
     x, y = read_data_from_csv_file(filename)
-    train_x, test_x = shuffle_and_split(x)
-    train_y, test_y = shuffle_and_split(y)
+    train_x, test_x = shuffle_and_split(x, train_ratio)
+    train_y, test_y = shuffle_and_split(y, train_ratio)
     for i in range(epochs//test_interval):
         model.fit(x=train_x, y=train_y, epochs=test_interval)
         print("test loss: ", model.evaluate(x=test_x, y=test_y))
