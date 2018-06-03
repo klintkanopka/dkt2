@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import argparse
 import csv
 import numpy as np
 from keras.models import Model
@@ -78,10 +79,14 @@ def train(model, filename, epochs=150, train_ratio=0.8, test_interval=10):
         print("test loss: ", model.evaluate(x=test_x, y=test_y))
 
 def main():
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("data")
+    args = argparser.parse_args()
+
     model = make_model((103, 7))
     model.summary()
     model.compile("Adam", "binary_crossentropy");
-    train(model, "data/tiny-test.csv")
+    train(model, args.data)
 
 if __name__ == "__main__":
     main()
