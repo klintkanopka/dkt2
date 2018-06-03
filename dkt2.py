@@ -65,14 +65,23 @@ def make_model(input_shape):
     x = Dense(1)(x)
     return Model(inputs=inputs, outputs=x)
 
+def shuffle_and_split(data, ratio):
+    np.random.shuffle(data)
+    return np.split(data, [int(ratio*len(data))])
+
+def train(model, filename, epochs=150, train_ratio=0.8, test_interval=10):
+    x, y = read_data_from_csv_file(filename)
+    train_x, test_x = shuffle_and_split(x)
+    train_y, test_y = shuffle_and_split(y)
+    for i in range(epochs//test_interval):
+        model.fit(x=train_x, y=train_y, epochs=test_interval)
+        print("test loss: ", model.evaluate(x=test_x, y=test_y))
+
 def main():
-    inputs, targets = read_data_from_csv_file("data/tiny-test.csv")
-    print(inputs.shape)
     model = make_model((103, 7))
     model.summary()
     model.compile("Adam", "binary_crossentropy");
-    model.fit(x=inputs, y=targets, epochs=100)
-    print(model.predict(inputs).shape)
+    train(model, "data/tiny-test.csv")
 
 if __name__ == "__main__":
     main()
