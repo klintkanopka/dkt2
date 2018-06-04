@@ -71,18 +71,6 @@ def make_model(input_shape):
     x = Dense(1)(x)
     return Model(inputs=inputs, outputs=x)
 
-def shuffle_and_split(data, ratio):
-    np.random.shuffle(data)
-    return np.split(data, [int(ratio*len(data))])
-
-def train(model, filename, epochs=150, train_ratio=0.8, test_interval=10):
-    x, y = read_data_from_csv_file(filename)
-    train_x, test_x = shuffle_and_split(x, train_ratio)
-    train_y, test_y = shuffle_and_split(y, train_ratio)
-    for i in range(epochs//test_interval):
-        model.fit(x=train_x, y=train_y, epochs=test_interval)
-        print("test loss: ", model.evaluate(x=test_x, y=test_y))
-
 def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument("data")
@@ -91,7 +79,9 @@ def main():
     model = make_model((103, 7))
     model.summary()
     model.compile("Adam", "binary_crossentropy");
-    train(model, args.data)
+
+    x, y = read_data_from_csv_file(args.data)
+    model.fit(x=x, y=y, epochs=150, validation_split=0.8)
 
 if __name__ == "__main__":
     main()
