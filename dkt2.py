@@ -94,15 +94,16 @@ def main():
                                 help="model file to use" )
     args = argparser.parse_args()
 
+    x, y = read_data_from_csv_file(args.data)
+
     if isfile(args.model_file):
         model = load_model(args.model_file)
     else:
-        model = make_model((103, 7), units=args.units)
+        model = make_model(x.shape[1:], units=args.units)
         model.compile("Adam", "binary_crossentropy", metrics=["accuracy"]);
 
     model.summary()
 
-    x, y = read_data_from_csv_file(args.data)
     model.fit(x=x, y=y, epochs=args.epochs, validation_split=args.split)
     model.save(args.model_file)
 
