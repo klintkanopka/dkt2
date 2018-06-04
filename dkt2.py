@@ -74,6 +74,11 @@ def make_model(input_shape):
 def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument("data")
+    argparser.add_argument(     "-n",
+                                "--epochs",
+                                type=int,
+                                default=150,
+                                help="number of epochs to train" )
     args = argparser.parse_args()
 
     model = make_model((103, 7))
@@ -81,7 +86,7 @@ def main():
     model.compile("Adam", "binary_crossentropy", metrics=["accuracy"]);
 
     x, y = read_data_from_csv_file(args.data)
-    model.fit(x=x, y=y, epochs=150, validation_split=0.8)
+    model.fit(x=x, y=y, epochs=args.epochs, validation_split=0.8)
 
 if __name__ == "__main__":
     main()
