@@ -78,7 +78,7 @@ def main():
 
     model = make_model((103, 7))
     model.summary()
-    model.compile("Adam", "binary_crossentropy");
+    model.compile("Adam", "binary_crossentropy", metrics=["accuracy"]);
 
     x, y = read_data_from_csv_file(args.data)
     model.fit(x=x, y=y, epochs=150, validation_split=0.8)
