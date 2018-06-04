@@ -15,7 +15,8 @@
 import argparse
 import csv
 import numpy as np
-from keras.models import Model
+from os.path import isfile
+from keras.models import Model, load_model
 from keras.layers import Input, GRU, Dense
 from functools import reduce
 
@@ -86,14 +87,24 @@ def main():
                                 type=int,
                                 default=64,
                                 help="number of units per RNN cell" )
+    argparser.add_argument(     "-m",
+                                "--model-file",
+                                type=str,
+                                default="dkt2.h5",
+                                help="model file to use" )
     args = argparser.parse_args()
 
-    model = make_model((103, 7), units=args.units)
+    if isfile(args.model_file):
+        model = load_model(args.model_file)
+    else:
+        model = make_model((103, 7), units=args.units)
+        model.compile("Adam", "binary_crossentropy", metrics=["accuracy"]);
+
     model.summary()
-    model.compile("Adam", "binary_crossentropy", metrics=["accuracy"]);
 
     x, y = read_data_from_csv_file(args.data)
     model.fit(x=x, y=y, epochs=args.epochs, validation_split=args.split)
+    model.save(args.model_file)
 
 if __name__ == "__main__":
     main()
