@@ -19,9 +19,6 @@ from keras.models import Model
 from keras.layers import Input, GRU, Dense
 from functools import reduce
 
-
-GRU_HIDDEN_UNITS = 64
-
 def read_data_from_csv_file(fileName, n_params=8):
 
     rows = []
@@ -65,23 +62,38 @@ def compose2(f, g):
 def compose(*args):
     return reduce(compose2, args)
 
-def make_model(input_shape):
+def make_model(input_shape, units=64):
     inputs = Input(input_shape)
-    x = GRU(GRU_HIDDEN_UNITS, return_sequences=True)(inputs)
+    x = GRU(units, return_sequences=True)(inputs)
     x = Dense(1)(x)
     return Model(inputs=inputs, outputs=x)
 
 def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument("data")
+    argparser.add_argument(     "-n",
+                                "--epochs",
+                                type=int,
+                                default=150,
+                                help="number of epochs to train" )
+    argparser.add_argument(     "-s",
+                                "--split",
+                                type=float,
+                                default=0.2,
+                                help="fraction of data to use for training" )
+    argparser.add_argument(     "-u",
+                                "--units",
+                                type=int,
+                                default=64,
+                                help="number of units per RNN cell" )
     args = argparser.parse_args()
 
-    model = make_model((103, 7))
+    model = make_model((103, 7), units=args.units)
     model.summary()
     model.compile("Adam", "binary_crossentropy", metrics=["accuracy"]);
 
     x, y = read_data_from_csv_file(args.data)
-    model.fit(x=x, y=y, epochs=150, validation_split=0.8)
+    model.fit(x=x, y=y, epochs=args.epochs, validation_split=args.split)
 
 if __name__ == "__main__":
     main()
