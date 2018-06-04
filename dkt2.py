@@ -18,9 +18,6 @@ import numpy as np
 from keras.models import Model
 from keras.layers import Input, GRU, Dense
 from functools import reduce
-from keras.utils import plot_model
-from IPython.display import SVG
-from keras.utils.vis_utils import model_to_dot
 
 
 GRU_HIDDEN_UNITS = 64
@@ -95,7 +92,6 @@ def main():
     model.summary()
     model.compile("Adam", "binary_crossentropy");
     train(model, args.data)
-    plot_model(model, to_file='model.png')
 
 if __name__ == "__main__":
     main()
