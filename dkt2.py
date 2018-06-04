@@ -18,6 +18,10 @@ import numpy as np
 from keras.models import Model
 from keras.layers import Input, GRU, Dense
 from functools import reduce
+from keras.utils import plot_model
+from IPython.display import SVG
+from keras.utils.vis_utils import model_to_dot
+
 
 GRU_HIDDEN_UNITS = 64
 
@@ -38,6 +42,9 @@ def read_data_from_csv_file(fileName, n_params=8):
     n_students = int((len(rows)-row_skip)/(n_params+1))
     print("the number of students is " + str(n_students))
     n_items = int(rows[row_skip][col_skip])
+    for n in range(n_students): 
+        if (int(rows[row_skip + n*(n_params + 1)][col_skip]) > n_items): 
+            n_items = int(rows[row_skip + n*(n_params + 1)][col_skip])
     print("the number of items is " + str(n_items))
 
     inputs = np.zeros((n_students, n_items, n_params - 1))
@@ -88,6 +95,7 @@ def main():
     model.summary()
     model.compile("Adam", "binary_crossentropy");
     train(model, args.data)
+    plot_model(model, to_file='model.png')
 
 if __name__ == "__main__":
     main()
