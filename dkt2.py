@@ -17,7 +17,7 @@ import csv
 import numpy as np
 from os.path import isfile
 from keras.models import Model, load_model
-from keras.layers import Input, GRU, Dense
+from keras.layers import Input, GRU, LSTM, SimpleRNN, Dense
 from functools import reduce
 
 def read_data_from_csv_file(fileName, n_params=8):
@@ -63,9 +63,9 @@ def compose2(f, g):
 def compose(*args):
     return reduce(compose2, args)
 
-def make_model(input_shape, units=64):
+def make_model(input_shape, rnn_layer=GRU, units=64):
     inputs = Input(input_shape)
-    x = GRU(units, return_sequences=True)(inputs)
+    x = rnn_layer(units, return_sequences=True)(inputs)
     x = Dense(1)(x)
     return Model(inputs=inputs, outputs=x)
 
@@ -82,6 +82,12 @@ def main():
                                 type=float,
                                 default=0.2,
                                 help="fraction of data to use for training" )
+    argparser.add_argument(     "-t",
+                                "--type",
+                                type=str.lower,
+                                default="gru",
+                                choices=["gru", "lstm", "simplernn"],
+                                help="type of RNN layer to use" )
     argparser.add_argument(     "-u",
                                 "--units",
                                 type=int,
@@ -94,12 +100,13 @@ def main():
                                 help="model file to use" )
     args = argparser.parse_args()
 
+    rnn_layer = {"gru": GRU, "lstm": LSTM, "simplernn": SimpleRNN}[args.type];
     x, y = read_data_from_csv_file(args.data)
 
     if isfile(args.model_file):
         model = load_model(args.model_file)
     else:
-        model = make_model(x.shape[1:], units=args.units)
+        model = make_model( x.shape[1:], rnn_layer=rnn_layer, units=args.units)
         model.compile("Adam", "binary_crossentropy", metrics=["accuracy"]);
 
     model.summary()
