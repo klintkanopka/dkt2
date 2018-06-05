@@ -14,6 +14,7 @@
 
 import argparse
 import csv
+import sys
 import numpy as np
 from os.path import isfile
 from keras.models import Model, load_model
@@ -111,7 +112,11 @@ def main():
 
     model.summary()
 
-    model.fit(x=x, y=y, epochs=args.epochs, validation_split=args.split)
+    model.fit(  x=x,
+                y=y,
+                epochs=args.epochs,
+                validation_split=args.split,
+                verbose=1 if sys.stdout.isatty() else 2 )
     model.save(args.model_file)
 
 if __name__ == "__main__":
