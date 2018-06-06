@@ -58,11 +58,8 @@ def read_data_from_csv_file(fileName, n_params=8):
     print("finished reading data")
     return inputs, target
 
-def compose2(f, g):
-    return lambda x: f(g(x))
-
 def compose(*args):
-    return reduce(compose2, args)
+    return reduce(lambda f, g: lambda x: f(g(x)), args)
 
 def make_model(input_shape, rnn_layer=GRU, layers=1, units=64):
     inputs = Input(input_shape)
