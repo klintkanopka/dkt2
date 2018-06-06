@@ -63,9 +63,10 @@ def compose2(f, g):
 def compose(*args):
     return reduce(compose2, args)
 
-def make_model(input_shape, rnn_layer=GRU, units=64):
+def make_model(input_shape, rnn_layer=GRU, layers=1, units=64):
     inputs = Input(input_shape)
-    x = rnn_layer(units, return_sequences=True)(inputs)
+    make_rnn_layer = lambda _: rnn_layer(units, return_sequences=True)
+    x = compose(*map(make_rnn_layer, range(layers)))(inputs)
     x = Dense(1)(x)
     return Model(inputs=inputs, outputs=x)
 
@@ -88,6 +89,11 @@ def main():
                                 default="gru",
                                 choices=["gru", "lstm", "simplernn"],
                                 help="type of RNN layer to use" )
+    argparser.add_argument(     "-l",
+                                "--layers",
+                                type=int,
+                                default=1,
+                                help="number of RNN layers" )
     argparser.add_argument(     "-u",
                                 "--units",
                                 type=int,
@@ -106,7 +112,10 @@ def main():
     if isfile(args.model_file):
         model = load_model(args.model_file)
     else:
-        model = make_model( x.shape[1:], rnn_layer=rnn_layer, units=args.units)
+        model = make_model( x.shape[1:],
+                            rnn_layer=rnn_layer,
+                            layers=args.layers,
+                            units=args.units )
         model.compile("Adam", "binary_crossentropy", metrics=["accuracy"]);
 
     model.summary()
