@@ -19,6 +19,7 @@ import numpy as np
 from os.path import isfile
 from keras.models import Model, load_model
 from keras.layers import Input, GRU, LSTM, SimpleRNN, Dense
+from keras.regularizers import l2
 from functools import reduce
 
 def read_data_from_csv_file(fileName, n_params=8):
@@ -62,10 +63,13 @@ def compose(*args):
     return reduce(lambda f, g: lambda x: f(g(x)), args)
 
 def make_model(input_shape, rnn_layer=GRU, layers=1, units=64):
+    regularizer = l2(0.01)
     inputs = Input(input_shape)
-    make_rnn_layer = lambda _: rnn_layer(units, return_sequences=True)
+    make_rnn_layer = lambda _: rnn_layer(   units,
+                                            return_sequences=True,
+                                            kernel_regularizer=regularizer )
     x = compose(*map(make_rnn_layer, range(layers)))(inputs)
-    x = Dense(1)(x)
+    x = Dense(1, kernel_regularizer=regularizer)(x)
     return Model(inputs=inputs, outputs=x)
 
 def main():
