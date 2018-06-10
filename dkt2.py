@@ -57,7 +57,7 @@ def read_data_from_csv_file(fileName, n_params=8):
                 inputs[i][j][k] = float(rows[index + 2 + k][j + col_skip])
 
     print("finished reading data")
-    return inputs, target
+    return inputs[:,:-1,:], target[:,-1,:]
 
 def compose(*args):
     return reduce(lambda f, g: lambda x: f(g(x)), args)
@@ -65,10 +65,14 @@ def compose(*args):
 def make_model(input_shape, rnn_layer=GRU, layers=1, units=64):
     regularizer = l2(0.01)
     inputs = Input(input_shape)
-    make_rnn_layer = lambda _: rnn_layer(   units,
-                                            return_sequences=True,
-                                            kernel_regularizer=regularizer )
-    x = compose(*map(make_rnn_layer, range(layers)))(inputs)
+    make_middle_layer = lambda _: rnn_layer(    units,
+                                                return_sequences=True,
+                                                kernel_regularizer=regularizer )
+    if layers == 1:
+        x = inputs
+    else:
+        x = compose(*map(make_middle_layer, range(layers-1)))(inputs)
+    x = rnn_layer(units, kernel_regularizer=regularizer)(x)
     x = Dense(1, activation="sigmoid", kernel_regularizer=regularizer)(x)
     return Model(inputs=inputs, outputs=x)
 
