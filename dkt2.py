@@ -45,7 +45,7 @@ def read_data_from_csv_file(fileName, n_params=8):
             n_items = int(rows[row_skip + n*(n_params + 1)][col_skip])
     print("the number of items is " + str(n_items))
 
-    inputs = np.zeros((n_students, n_items, n_params - 1))
+    inputs = np.zeros((n_students, n_items, n_params))
     target = np.zeros((n_students, n_items, 1))
 
     for i in range(n_students):
@@ -53,9 +53,9 @@ def read_data_from_csv_file(fileName, n_params=8):
         num_items = int(rows[index][col_skip])
         for j in range(num_items):
             target[i][j][0] = int(rows[index + 1][j + col_skip])
-        for k in range(n_params-1):
+        for k in range(n_params):
             for j in range(num_items):
-                inputs[i][j][k] = float(rows[index + 2 + k][j + col_skip])
+                inputs[i][j][k] = float(rows[index + 1 + k][j + col_skip])
 
     print("finished reading data")
     np.random.seed(0xdeadbeef)
@@ -63,7 +63,8 @@ def read_data_from_csv_file(fileName, n_params=8):
     for i in range(inputs.shape[0]):
         padding = paddings[i]
         inputs[i,-padding:,:] = -1
-    return inputs, target[:,-1,:]
+        target[i,0,0] = target[i,(-padding+1), :]
+    return inputs, target[:,0,:]
 
 def compose(*args):
     return reduce(lambda f, g: lambda x: f(g(x)), args)
