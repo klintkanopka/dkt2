@@ -69,7 +69,7 @@ def make_model(input_shape, rnn_layer=GRU, layers=1, units=64):
                                             return_sequences=True,
                                             kernel_regularizer=regularizer )
     x = compose(*map(make_rnn_layer, range(layers)))(inputs)
-    x = Dense(1, kernel_regularizer=regularizer)(x)
+    x = Dense(1, activation="sigmoid", kernel_regularizer=regularizer)(x)
     return Model(inputs=inputs, outputs=x)
 
 def main():
