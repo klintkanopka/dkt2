@@ -18,7 +18,7 @@ import sys
 import numpy as np
 from os.path import isfile
 from keras.models import Model, load_model
-from keras.layers import Input, GRU, LSTM, SimpleRNN, Dense
+from keras.layers import Input, GRU, LSTM, SimpleRNN, Dense, Masking
 from keras.regularizers import l2
 from functools import reduce
 
@@ -65,12 +65,11 @@ def compose(*args):
 def make_model(input_shape, rnn_layer=GRU, layers=1, units=64):
     regularizer = l2(0.01)
     inputs = Input(input_shape)
+    x = Masking(-1)(inputs)
     make_middle_layer = lambda _: rnn_layer(    units,
                                                 return_sequences=True,
                                                 kernel_regularizer=regularizer )
-    if layers == 1:
-        x = inputs
-    else:
+    if layers > 1:
         x = compose(*map(make_middle_layer, range(layers-1)))(inputs)
     x = rnn_layer(units, kernel_regularizer=regularizer)(x)
     x = Dense(1, activation="sigmoid", kernel_regularizer=regularizer)(x)
