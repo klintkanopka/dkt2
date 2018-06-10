@@ -3,6 +3,6 @@ Expanded implementation of DKT (https://github.com/chrispiech/DeepKnowledgeTraci
 
 Code is designed for flexible command line specification of RNN model (simple RNN, GRU or LSTM) and dataset.  
 
-The data folder contains a file called "tiny-test.csv" with an example of the input format.  The full datasete is from the Center for Advanced Research through Online Learning (https://iriss.stanford.edu/carol).  We are, unfortunately, not able to provide this data set to the public.
+The data folder contains a file called "tiny-test.csv" with an example of the input format.  The full dataset is from the Center for Advanced Research through Online Learning (https://iriss.stanford.edu/carol).  We are, unfortunately, not able to provide this data set to the public.
 
 Data cleaning was done in STATA.  
