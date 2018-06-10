@@ -17,8 +17,10 @@ import csv
 import sys
 import numpy as np
 from os.path import isfile
+from keras.callbacks import ReduceLROnPlateau
 from keras.models import Model, load_model
-from keras.layers import Input, GRU, LSTM, SimpleRNN, Dense
+from keras.layers import Input, GRU, LSTM, SimpleRNN, Dense, Masking
+from keras.regularizers import l2
 from functools import reduce
 
 def read_data_from_csv_file(fileName, n_params=8):
@@ -43,7 +45,7 @@ def read_data_from_csv_file(fileName, n_params=8):
             n_items = int(rows[row_skip + n*(n_params + 1)][col_skip])
     print("the number of items is " + str(n_items))
 
-    inputs = np.zeros((n_students, n_items, n_params - 1))
+    inputs = np.zeros((n_students, n_items, n_params))
     target = np.zeros((n_students, n_items, 1))
 
     for i in range(n_students):
@@ -51,21 +53,33 @@ def read_data_from_csv_file(fileName, n_params=8):
         num_items = int(rows[index][col_skip])
         for j in range(num_items):
             target[i][j][0] = int(rows[index + 1][j + col_skip])
-        for k in range(n_params-1):
+        for k in range(n_params):
             for j in range(num_items):
-                inputs[i][j][k] = float(rows[index + 2 + k][j + col_skip])
+                inputs[i][j][k] = float(rows[index + 1 + k][j + col_skip])
 
     print("finished reading data")
-    return inputs, target
+    np.random.seed(0xdeadbeef)
+    paddings = np.random.randint(1, inputs.shape[1]-1, inputs.shape[0])
+    for i in range(inputs.shape[0]):
+        padding = paddings[i]
+        inputs[i,-padding:,:] = -1
+        target[i,0,0] = target[i,(-padding+1), :]
+    return inputs, target[:,0,:]
 
 def compose(*args):
     return reduce(lambda f, g: lambda x: f(g(x)), args)
 
 def make_model(input_shape, rnn_layer=GRU, layers=1, units=64):
+    regularizer = l2(0.01)
     inputs = Input(input_shape)
-    make_rnn_layer = lambda _: rnn_layer(units, return_sequences=True)
-    x = compose(*map(make_rnn_layer, range(layers)))(inputs)
-    x = Dense(1)(x)
+    x = Masking(-1)(inputs)
+    make_middle_layer = lambda _: rnn_layer(    units,
+                                                return_sequences=True,
+                                                kernel_regularizer=regularizer )
+    if layers > 1:
+        x = compose(*map(make_middle_layer, range(layers-1)))(inputs)
+    x = rnn_layer(units, kernel_regularizer=regularizer)(x)
+    x = Dense(1, activation="sigmoid", kernel_regularizer=regularizer)(x)
     return Model(inputs=inputs, outputs=x)
 
 def main():
@@ -118,9 +132,11 @@ def main():
 
     model.summary()
 
+    reduce_lr = ReduceLROnPlateau(monitor="val_loss", verbose=1)
     model.fit(  x=x,
                 y=y,
                 epochs=args.epochs,
+                callbacks=[reduce_lr],
                 validation_split=args.split,
                 verbose=1 if sys.stdout.isatty() else 2 )
     model.save(args.model_file)
