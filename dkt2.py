@@ -57,6 +57,7 @@ def read_data_from_csv_file(fileName, n_params=8):
                 inputs[i][j][k] = float(rows[index + 2 + k][j + col_skip])
 
     print("finished reading data")
+    np.random.seed(0xdeadbeef)
     paddings = np.random.randint(1, inputs.shape[1]-1, inputs.shape[0])
     for i in range(inputs.shape[0]):
         padding = paddings[i]
