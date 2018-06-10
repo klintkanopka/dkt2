@@ -17,6 +17,7 @@ import csv
 import sys
 import numpy as np
 from os.path import isfile
+from keras.callbacks import ReduceLROnPlateau
 from keras.models import Model, load_model
 from keras.layers import Input, GRU, LSTM, SimpleRNN, Dense, Masking
 from keras.regularizers import l2
@@ -130,9 +131,11 @@ def main():
 
     model.summary()
 
+    reduce_lr = ReduceLROnPlateau(monitor="val_loss", verbose=1)
     model.fit(  x=x,
                 y=y,
                 epochs=args.epochs,
+                callbacks=[reduce_lr],
                 validation_split=args.split,
                 verbose=1 if sys.stdout.isatty() else 2 )
     model.save(args.model_file)
