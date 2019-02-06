@@ -85,6 +85,11 @@ def make_model(input_shape, rnn_layer=GRU, layers=1, units=64):
 def main():
     argparser = argparse.ArgumentParser()
     argparser.add_argument("data")
+    argparser.add_argument(     "--mode",
+                                type=str.lower,
+                                default="train",
+                                choices=["train", "predict"],
+                                help="mode of operation" )
     argparser.add_argument(     "-n",
                                 "--epochs",
                                 type=int,
@@ -116,6 +121,11 @@ def main():
                                 type=str,
                                 default="dkt2.h5",
                                 help="model file to use" )
+    argparser.add_argument(     "-o",
+                                "--output",
+                                type=str,
+                                default="dkt2.out",
+                                help="file for prediction output" )
     args = argparser.parse_args()
 
     rnn_layer = {"gru": GRU, "lstm": LSTM, "simplernn": SimpleRNN}[args.type];
@@ -132,14 +142,24 @@ def main():
 
     model.summary()
 
-    reduce_lr = ReduceLROnPlateau(monitor="val_loss", verbose=1)
-    model.fit(  x=x,
-                y=y,
-                epochs=args.epochs,
-                callbacks=[reduce_lr],
-                validation_split=args.split,
-                verbose=1 if sys.stdout.isatty() else 2 )
-    model.save(args.model_file)
+    if args.mode == "train":
+        reduce_lr = ReduceLROnPlateau(monitor="val_loss", verbose=1)
+        model.fit(  x=x,
+                    y=y,
+                    epochs=args.epochs,
+                    callbacks=[reduce_lr],
+                    validation_split=args.split,
+                    verbose=1 if sys.stdout.isatty() else 2 )
+        model.save(args.model_file)
+    elif args.mode == "predict":
+        output = np.zeros(x.shape[:2])
+        for i in range(0, x.shape[1]):
+            x_pred = x.copy()
+            x_pred[:,i:,:] = -1
+            output[:,i:i+1] = model.predict(x_pred)
+        np.savetxt(args.output, output, delimiter=",")
+    else:
+        raise AssertionError("unknown mode")
 
 if __name__ == "__main__":
     main()
